@@ -1,0 +1,12 @@
+[Paths]
+exe = "/Applications/Dolphin.app/Contents/MacOS/Dolphin"
+
+
+[Flags]
+debug = true
+gecko = true
+auto  = "SSBMa "
+
+[Games]
+
+[Repos]
