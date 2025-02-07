@@ -1,11 +1,12 @@
 [Paths]
 exe = "/Applications/Dolphin.app/Contents/MacOS/Dolphin"
+assember = "as"
 
 
 [Flags]
 debug = true
 gecko = true
-auto  = "SSBMa "
+auto  = "Super Smash Bros. Melee"
 
 [Games]
 

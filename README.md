@@ -1,7 +1,7 @@
 # Snake
 ## A Gecko Code Assembler  written in Rust
 
-Gecko is a cheat-code specification popularized by modchips and Action Replay for the Nintendo Wii
+Gecko is a cheat-code specification popularized by modchips and Action Replay for the Nintendo Wii and Gamecube
 It has since been made freely aviable for use in the Dolphin Emulator allow users to easily achive ACE in their favorite games
 Why use an assembler? Because I'm not writting my code with just numbers bro
 
@@ -13,9 +13,9 @@ By controlling the Base Address we can controll the execution flow and achive AC
 
 **Pointers Offsets (`PO`)** are required to index beyond 0x01000000
 
-**Gecko Registers (`g[1-16]`)**  General Purpose Registers (16)
+**Gecko Registers (`g[0-15]`)**  General Purpose Registers (16)
 
-**Counter Registers** unaccessible and represects the program counter
+**Counter Registers ('c[0-255])** unaccessible and counts stuff depending on the _Comparison Register_
 
 **Comparision Register** - unaccessible and typically called the _execution register_. Store's the result of comparisons
 
@@ -23,7 +23,18 @@ Keep in mind that `$BA` instructions  can only be indexed until 0x01000000
 
 This Gecko code specification can be expanded upon to create consumer focused applications for all platforms
 
+Gecko is best thought of as a Runtime similar to that of the C standard library for PowerPC architectures. Its primary purpose is cheating however a memory allocator can be added via `snake install reed`
+
+# Usage
+`snake build   <project root>`
+`snake clean   <project root>`
+`snake release <project root>`
+`snake publish <project root>`
+`snake install <project root>`
+
 # Snake -> Gecko Mapping
+
+This is a reference to all opcode instructions for Gecko
 
 ## Symbols Sheet
 ```
@@ -32,7 +43,9 @@ X      = value / memory address
 T      = type (byte/half-word/word) (8/16/32)
 C      = constants
 ______ = register offset / pointer offset to RAM
-...    = byte array
+ ...   = Arbitrary Data
+{...}  = PowerPC Assembly (default assembler: `gas`)
+{#asd} = Includes `asd.ppc` from `powerpc/` folder
 ```
 
 ## Assembler Format
@@ -42,105 +55,112 @@ ______ = register offset / pointer offset to RAM
     - Constants can be previewed by `L'..', 0x, 0b`
 
 ## Instructions
+Instruction Format
+`<verb> (:<class>)+ <size of op> <p/b> args...`
+
 ```
 <Direct Memory Access>
-    - fill  8    ______ <XX>         <YYYY>
-    - write 16b  ______ <XXXX>       <YYYY>
-    - write 16p  ______ <XXXX>       <YYYY>
-    - write 32b  ______ <XXXXXXXX>
-    - write 32p  ______ <XXXXXXXX>
-    - write b    ______ <YYYY> ...
-    - write p    ______ <YYYY> ...
-    - fill  p <XXXXXXXX> <T> <ZZZZ> <NNN>
-    - fill  b <XXXXXXXX> <T> <ZZZZ> <NNN>
+    - fill  8     ______ <XX>         <YYYY>
+    - write 16 b  ______ <XXXX>       <YYYY>
+    - write 16 p  ______ <XXXX>       <YYYY>
+    - write 32 b  ______ <XXXXXXXX>
+    - write 32 p  ______ <XXXXXXXX>
+    - write    b  ______ <YYYY> ...
+    - write    p  ______ <YYYY> ...
+    - fill:b   p <XXXXXXXX> <ZZZZ> <NNN>
+    - fill:hw  p <XXXXXXXX> <ZZZZ> <NNN>
+    - fill:w   p <XXXXXXXX> <ZZZZ> <NNN>
+    - fill:b   b <XXXXXXXX> <ZZZZ> <NNN>
+    - fill:hw  b <XXXXXXXX> <ZZZZ> <NNN>
+    - fill:w   b <XXXXXXXX> <ZZZZ> <NNN>
 <If Operations>
-    - if  e b32  ______ <XXXXXXXX>
-    - if  e p32  ______ <XXXXXXXX>
-    - if ne b32  ______ <XXXXXXXX>
-    - if ne p32  ______ <XXXXXXXX>
-    - if  g b32  ______ <XXXXXXXX>
-    - if  g p32  ______ <XXXXXXXX>
-    - if  l b32  ______ <XXXXXXXX>
-    - if  l p32  ______ <XXXXXXXX>
-    - if  geb32  ______ <XXXXXXXX>
-    - if  gep32  ______ <XXXXXXXX>
-    - if  leb32  ______ <XXXXXXXX>
-    - if  lep32  ______ <XXXXXXXX>
-    - if  e b64  ______ <XXXXXXXX>
-    - if  e p64  ______ <XXXXXXXX>
-    - if ne b64  ______ <XXXXXXXX>
-    - if ne p64  ______ <XXXXXXXX>
-    - if  g b64  ______ <XXXXXXXX>
-    - if  g p64  ______ <XXXXXXXX>
-    - if  l b64  ______ <XXXXXXXX>
-    - if  l p64  ______ <XXXXXXXX>
-    - if  geb64  ______ <XXXXXXXX>
-    - if  gep64  ______ <XXXXXXXX>
-    - if  leb64  ______ <XXXXXXXX>
-    - if  lep64  ______ <XXXXXXXX>
+    - if  32 b ______ == <XXXXXXXX>
+    - if  32 p ______ == <XXXXXXXX>
+    - if  32 b ______ != <XXXXXXXX>
+    - if  32 p ______ != <XXXXXXXX>
+    - if  32 b ______ >  <XXXXXXXX>
+    - if  32 p ______ >  <XXXXXXXX>
+    - if  32 b ______ <  <XXXXXXXX>
+    - if  32 p ______ <  <XXXXXXXX>
+    - if  32 b ______ >= <XXXXXXXX>
+    - if  32 p ______ >= <XXXXXXXX>
+    - if  32 b ______ <= <XXXXXXXX>
+    - if  32 p ______ <= <XXXXXXXX>
+    - if  64 b ______ == <XXXXXXXX>
+    - if  64 p ______ == <XXXXXXXX>
+    - if  64 b ______ != <XXXXXXXX>
+    - if  64 p ______ != <XXXXXXXX>
+    - if  64 b ______ >  <XXXXXXXX>
+    - if  64 p ______ >  <XXXXXXXX>
+    - if  64 b ______ <  <XXXXXXXX>
+    - if  64 p ______ <  <XXXXXXXX>
+    - if  64 b ______ >= <XXXXXXXX>
+    - if  64 p ______ >= <XXXXXXXX>
+    - if  64 b ______ <= <XXXXXXXX>
+    - if  64 p ______ <= <XXXXXXXX>
     - else/endif
 <BA Register Operations>
-    - load  $ba=   1b     [XXXXXXXX]
-    - load  $ba=   2b     [XXXXXXXX]
-    - load  $ba=   3b     [XXXXXXXX]
-    - load  $ba=   4b     [XXXXXXXX]
-    - load  $ba+=  1b     [XXXXXXXX]
-    - load  $ba+=  2b     [XXXXXXXX]
-    - load  $ba+=  3b     [XXXXXXXX]
-    - load  $ba+=  4b     [XXXXXXXX]
-    - load  $ba=   1p     [XXXXXXXX]
-    - load  $ba=   2p     [XXXXXXXX]
-    - load  $ba+=  1p     [XXXXXXXX]
-    - load  $ba+=  2p     [XXXXXXXX]
+    - load  1 b $ba =        [XXXXXXXX]
+    - load  2 b $ba =        [XXXXXXXX]
+    - load  3 b $ba =        [XXXXXXXX]
+    - load  4 b $ba =        [XXXXXXXX]
+    - load  1 b $ba +=       [XXXXXXXX]
+    - load  2 b $ba +=       [XXXXXXXX]
+    - load  3 b $ba +=       [XXXXXXXX]
+    - load  4 b $ba +=       [XXXXXXXX]
+    - load  1 p $ba =        [XXXXXXXX]
+    - load  2 p $ba =        [XXXXXXXX]
+    - load  1 p $ba +=       [XXXXXXXX]
+    - load  2 p $ba +=       [XXXXXXXX]
 
-    - store $ba=   1b     <XXXXXXXX>
-    - store $ba=   2b     <XXXXXXXX>
-    - store $ba=   3b     <XXXXXXXX>
-    - store $ba=   4b     <XXXXXXXX>
-    - store $ba+=  1b     <XXXXXXXX>
-    - store $ba+=  2b     <XXXXXXXX>
-    - store $ba+=  3b     <XXXXXXXX>
-    - store $ba+=  4b     <XXXXXXXX>
-    - store $ba=   1p     <XXXXXXXX>
-    - store $ba=   2p     <XXXXXXXX>
-    - store $ba+=  1p     <XXXXXXXX>
-    - store $ba+=  2p     <XXXXXXXX>
+    - store 1 b $ba =        <XXXXXXXX>
+    - store 2 b $ba =        <XXXXXXXX>
+    - store 3 b $ba =        <XXXXXXXX>
+    - store 4 b $ba =        <XXXXXXXX>
+    - store 1 b $ba +=       <XXXXXXXX>
+    - store 2 b $ba +=       <XXXXXXXX>
+    - store 3 b $ba +=       <XXXXXXXX>
+    - store 4 b $ba +=       <XXXXXXXX>
+    - store 1 p $ba =        <XXXXXXXX>
+    - store 2 p $ba =        <XXXXXXXX>
+    - store 1 p $ba +=       <XXXXXXXX>
+    - store 2 p $ba +=       <XXXXXXXX>
 
-    - store 1 [xxxxxxxx]=  $ba
-    - store 2 [xxxxxxxx]=  $ba
-    - store 3 [xxxxxxxx]=  $ba
-    - store 4 [xxxxxxxx]=  $ba
-    - store 5 [xxxxxxxx]=  $ba
-    - store 6 [xxxxxxxx]=  $ba
+    - store 1   [xxxxxxxx]  =  $ba
+    - store 2   [xxxxxxxx]  =  $ba
+    - store 3   [xxxxxxxx]  =  $ba
+    - store 4   [xxxxxxxx]  =  $ba
+    - store 5   [xxxxxxxx]  =  $ba
+    - store 6   [xxxxxxxx]  =  $ba
 
     - rip   <XXXX> $ba
 <PO Register Operations>
-    - load   $po=   1b     [XXXXXXXX]
-    - load   $po=   2b     [XXXXXXXX]
-    - load   $po=   3b     [XXXXXXXX]
-    - load   $po=   4b     [XXXXXXXX]
-    - load   $po+=  1b     [XXXXXXXX]
-    - load   $po+=  2b     [XXXXXXXX]
-    - load   $po+=  3b     [XXXXXXXX]
-    - load   $po+=  4b     [XXXXXXXX]
-    - load   $po=   1p     [XXXXXXXX]
-    - load   $po=   2p     [XXXXXXXX]
-    - load   $po+=  1p     [XXXXXXXX]
-    - load   $po+=  2p     [XXXXXXXX]
+    - load  1 b $po=        [XXXXXXXX]
+    - load  2 b $po=        [XXXXXXXX]
+    - load  3 b $po=        [XXXXXXXX]
+    - load  4 b $po=        [XXXXXXXX]
+    - load  1 b $po+=       [XXXXXXXX]
+    - load  2 b $po+=       [XXXXXXXX]
+    - load  3 b $po+=       [XXXXXXXX]
+    - load  4 b $po+=       [XXXXXXXX]
+    - load  1 p $po=        [XXXXXXXX]
+    - load  2 p $po=        [XXXXXXXX]
+    - load  1 p $po+=       [XXXXXXXX]
+    - load  2 p $po+=       [XXXXXXXX]
 
 
-    - store  $po=   1b     <XXXXXXXX>
-    - store  $po=   2b     <XXXXXXXX>
-    - store  $po=   3b     <XXXXXXXX>
-    - store  $po=   4b     <XXXXXXXX>
-    - store  $po+=  1b     <XXXXXXXX>
-    - store  $po+=  2b     <XXXXXXXX>
-    - store  $po+=  3b     <XXXXXXXX>
-    - store  $po+=  4b     <XXXXXXXX>
-    - store  $po=   1p     <XXXXXXXX>
-    - store  $po=   2p     <XXXXXXXX>
-    - store  $po+=  1p     <XXXXXXXX>
-    - store  $po+=  2p     <XXXXXXXX>
+    - store 1 $po=   b     <XXXXXXXX>
+    - store 2 $po=   b     <XXXXXXXX>
+    - store 3 $po=   b     <XXXXXXXX>
+    - store 4 $po=   b     <XXXXXXXX>
+    - store 1 $po+=  b     <XXXXXXXX>
+    - store 2 $po+=  b     <XXXXXXXX>
+    - store 3 $po+=  b     <XXXXXXXX>
+    - store 4 $po+=  b     <XXXXXXXX>
+    - store 1 $po=   p     <XXXXXXXX>
+    - store 2 $po=   p     <XXXXXXXX>
+    - store 1 $po+=  p     <XXXXXXXX>
+    - store 2 $po+=  p     <XXXXXXXX>
 
     - store 1 [xxxxxxxx]=  g$
     - store 2 [xxxxxxxx]=  g$
@@ -160,52 +180,52 @@ ______ = register offset / pointer offset to RAM
     - goto 4 <XXXX>
     - call   <XXXX>
 <Gecko Registers>
-    - =            g$     <XXXXXXXX>
-    - =      b     g$     <XXXXXXXX>
-    - =      p     g$     <XXXXXXXX>
-    - +=           g$     <XXXXXXXX>
-    - +=     b     g$     <XXXXXXXX>
-    - +=     p     g$     <XXXXXXXX>
-    - load   b     g$     <XXXXXXXX>
-    - load   b     g$     <XXXXXXXX>
-    - load   b     g$     <XXXXXXXX>
-    - load   b8    g$     <XXXXXXXX>
-    - load   b16   g$     <XXXXXXXX>
-    - load   b32   g$     <XXXXXXXX>
-    - load   p8    g$     <XXXXXXXX>
-    - load   p16   g$     <XXXXXXXX>
-    - load   p32   g$     <XXXXXXXX>
-    - store  8     g$     <XXXXXXXX>
-    - store  16    g$     <XXXXXXXX>
-    - store  32    g$     <XXXXXXXX>
-    - store  8     g$ b   <XXXXXXXX>
-    - store  16    g$ b   <XXXXXXXX>
-    - store  32    g$ b   <XXXXXXXX>
-    - store  8     g$ p   <XXXXXXXX>
-    - store  16    g$ p   <XXXXXXXX>
-    - store  32    g$ p   <XXXXXXXX>
-    - const  +     g$ C
-    - const  *     g$ C
-    - const  |     g$ C
-    - const  &     g$ C
-    - const  ^     g$ C
-    - const  <<    g$ C
-    - const  >>    g$ C
-    - const  rol   g$ C
-    - const  asr   g$ C
-    - const  fadds g$ C
-    - const  fmuls g$ C
-    - +      g$  g$
-    - *      g$  g$
-    - |      g$  g$
-    - &      g$  g$
-    - ^      g$  g$
-    - <<     g$  g$
-    - >>     g$  g$
-    - rol    g$  g$
-    - asr    g$  g$
-    - fadds  g$  g$
-    - fmuls  g$  g$
+    - =              g$     <XXXXXXXX>
+    - =      b       g$     <XXXXXXXX>
+    - =      p       g$     <XXXXXXXX>
+    - +=             g$     <XXXXXXXX>
+    - +=     b       g$     <XXXXXXXX>
+    - +=     p       g$     <XXXXXXXX>
+    - load   b       g$     <XXXXXXXX>
+    - load   b       g$     <XXXXXXXX>
+    - load   b       g$     <XXXXXXXX>
+    - load   b 8     g$     <XXXXXXXX>
+    - load   b 16    g$     <XXXXXXXX>
+    - load   b 32    g$     <XXXXXXXX>
+    - load   p 8     g$     <XXXXXXXX>
+    - load   p 16    g$     <XXXXXXXX>
+    - load   p 32    g$     <XXXXXXXX>
+    - store    8     g$     <XXXXXXXX>
+    - store    16    g$     <XXXXXXXX>
+    - store    32    g$     <XXXXXXXX>
+    - store  b 8     g$     <XXXXXXXX>
+    - store  b 16    g$     <XXXXXXXX>
+    - store  b 32    g$     <XXXXXXXX>
+    - store  p 8     g$     <XXXXXXXX>
+    - store  p 16    g$     <XXXXXXXX>
+    - store  p 32    g$     <XXXXXXXX>
+    - const  C +     g$
+    - const  C *     g$
+    - const  C |     g$
+    - const  C &     g$
+    - const  C ^     g$
+    - const  C <<    g$
+    - const  C >>    g$
+    - const  C rol   g$
+    - const  C asr   g$
+    - const  C fadds g$
+    - const  C fmuls g$
+    - +       g$  g$
+    - *       g$  g$
+    - |       g$  g$
+    - &       g$  g$
+    - ^       g$  g$
+    - <<      g$  g$
+    - >>      g$  g$
+    - rol     g$  g$
+    - asr     g$  g$
+    - fadds   g$  g$
+    - fmuls   g$  g$
     - memcopy  <YYYY>  g$
     - memcopyb <YYYY>  g$
     - memcopyp <YYYY>  g$
@@ -216,12 +236,40 @@ ______ = register offset / pointer offset to RAM
     - memcopyb <YYYY>  <XXXXXXXX> g$
     - memcopyp <YYYY>  <XXXXXXXX> g$
 
-<Counter Registers>
+<Counter Registers> (Useful for putting an upper bound on the Halting Problem :)
+    - count 0 16  <XXXX> <MMMM> =  [<ZZZZ>]
+    - count 1 16  <XXXX> <MMMM> =  [<ZZZZ>]
+    - count 8 16  <XXXX> <MMMM> =  [<ZZZZ>]
+    - count 9 16  <XXXX> <MMMM> =  [<ZZZZ>]
+
+    - count 0 16  <XXXX> <MMMM> != [<ZZZZ>]
+    - count 1 16  <XXXX> <MMMM> != [<ZZZZ>]
+    - count 8 16  <XXXX> <MMMM> != [<ZZZZ>]
+    - count 9 16  <XXXX> <MMMM> != [<ZZZZ>]
+
+    - count 0 16  <XXXX> <MMMM> >  [<ZZZZ>]
+    - count 1 16  <XXXX> <MMMM> >  [<ZZZZ>]
+    - count 8 16  <XXXX> <MMMM> >  [<ZZZZ>]
+    - count 9 16  <XXXX> <MMMM> >  [<ZZZZ>]
+
+    - count 0 16  <XXXX> <MMMM> <  [<ZZZZ>]
+    - count 1 16  <XXXX> <MMMM> <  [<ZZZZ>]
+    - count 8 16  <XXXX> <MMMM> <  [<ZZZZ>]
+    - count 9 16  <XXXX> <MMMM> <  [<ZZZZ>]
 <ASM>
     - execute {..}
     - inject ______ {..}
     - hook   ______ <YYYYYYYY>
 <Other>
+    - toggle
+    - ifrange <XXXX> <YYYY>
+    - clear
+    - else0
+    - else1
+    - end
+<Gecko 1.8+ Only>
+    - inject ______ {..} <ZZZZ>
+    - search <XXXX> <YYYY> {..}
 ```
 
 ## Tips
