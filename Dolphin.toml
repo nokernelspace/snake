@@ -6,7 +6,7 @@ assember = "as"
 [Flags]
 debug = true
 gecko = true
-auto  = "Super Smash Bros. Melee"
+autostart  = "Super Smash Bros. Melee"
 
 [Games]
 
